@@ -7,6 +7,151 @@ This is the presentation/orchestration layer: read text, select an operation,
 convert operands, display a result, and manage session history. Arithmetic lives
 in app.operations so it can be reused without a terminal. See tests/test_cli.py
 for examples of testing this layer without a human typing at the keyboard.
+
+═══════════════════════════════════════════════════════════════════════════════
+🤖 MENTOR COMMENTARY: User Interface Design Patterns
+═══════════════════════════════════════════════════════════════════════════════
+
+Welcome back! This file is where things get interesting. Here's where theory
+meets practice: how do we actually talk to users in a way that feels natural?
+
+1. **THE REPL PATTERN (Read-Eval-Print-Loop)**
+   
+   Python itself is a REPL:
+   $ python
+   >>> 5 + 3
+   8
+   >>> x = "hello"
+   >>> print(x)
+   hello
+   
+   We mimic this pattern here because users are already familiar with it. Every
+   text editor, database client, and interactive tool uses this pattern.
+   
+   Real-world applications:
+   - Jupyter notebooks (REPL for data science)
+   - PostgreSQL command line (database REPL)
+   - Node.js REPL (JavaScript runtime)
+   - Ruby IRB (Ruby REPL)
+   
+   If you want to build interactive applications, master the REPL pattern.
+   It's everywhere.
+
+2. **STATE MANAGEMENT (History Tracking)**
+   
+   Notice self.history is a list that persists across commands. This is
+   intentional state management, not accidentally shared global variables.
+   
+   Real-world complexity:
+   - Web apps: User sessions store shopping cart, login info, preferences
+   - Databases: Transaction state tracks whether writes have committed
+   - Games: Game state tracks player position, inventory, health
+   - Trading systems: State tracks open positions, buy/sell orders
+   
+   The technique here (storing state in an object) is exactly how frameworks
+   handle it at scale. But with one critical difference: we DOCUMENT what
+   state is held and WHY. Look at __init__.py and show_history().
+   
+   In real codebases, bugs come from mysterious state changes. We avoid that
+   by being explicit: "self.history holds calculation records."
+
+3. **DISPATCH TABLES (The Operations Registry)**
+   
+   self.operations is a dict mapping strings to functions. This is a
+   "dispatch table" pattern.
+   
+   Why this is better than:
+   
+   BAD (you'd see this in junior code):
+   ```python
+   if op == '+':
+       result = add(a, b)
+   elif op == '-':
+       result = subtract(a, b)
+   elif op == '*':
+       # ... copy-pasted 5 more times
+   ```
+   
+   This is fragile (copy-paste errors), hard to extend (must change multiple
+   places), and violates DRY (Don't Repeat Yourself).
+   
+   GOOD (what we do here):
+   ```python
+   self.operations = {'+': (add, 2, 'Add two numbers')}
+   func, args_needed, _ = self.operations['+']
+   result = func(a, b)
+   ```
+   
+   This scales: adding a new operation means ONE line in the dict, not five
+   new if/elif branches.
+   
+   Real-world: Django routing, Flask blueprints, REST API routers—all use
+   dispatch tables. This pattern is how you build extensible software.
+
+4. **ERROR HANDLING STRATEGY**
+   
+   Look at parse_input(): it tries to parse, catches exceptions, prints
+   friendly messages, and continues. It doesn't crash.
+   
+   User experience matters. Compare:
+   
+   BAD:
+   ```
+   $ python calculator.py
+   ValueError: could not convert string to float: 'hello'
+   [crash]
+   ```
+   
+   GOOD (what we do):
+   ```
+   calc> hello + 5
+   
+   Error: No valid operation found
+   
+   calc> [ready for next input]
+   ```
+   
+   The user experience difference is HUGE. In professional software:
+   - Banking apps that crash lose customers
+   - Healthcare systems that crash cause medical errors
+   - Social media that crashes gets bad press
+   
+   Error handling isn't optional. It's the core of good user experience.
+
+5. **TESTING THE UI (Without User Input)**
+   
+   Notice test_cli.py exists. How do you test interactive code without
+   having a human type? Mock the input, capture the output, verify behavior.
+   
+   This is advanced testing, and it's essential. Most junior engineers think
+   UI code can't be tested. It absolutely can. That's how big companies
+   catch bugs before users do.
+
+6. **SEPARATION OF PARSING FROM LOGIC**
+   
+   The execute_calculation() method is very focused: it just parses strings
+   and calls operations. It doesn't validate (operations do), doesn't print
+   (parse_input prints), doesn't loop (run() does that).
+   
+   In enterprise code, violation of this principle is called "God Classes"
+   (class that does too much). Our Calculator class stays focused.
+
+═══════════════════════════════════════════════════════════════════════════════
+⚡ REAL-WORLD CONNECTION
+
+Right now you're building a CLI. In 5 years you might build:
+- Web dashboards (Flask/Django)
+- Mobile apps (React, SwiftUI)
+- API servers (FastAPI)
+- Desktop applications (PyQt, Tkinter)
+
+Every single one separates business logic from presentation. The only thing
+that changes is the framework. The principle stays the same.
+
+Professional developers who understand this pattern earn 2-3x more than those
+who don't. Not exaggerating. This is foundational knowledge.
+
+═══════════════════════════════════════════════════════════════════════════════
 """
 
 # Explicit imports make the available arithmetic dependencies easy to find.
