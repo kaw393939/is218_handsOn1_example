@@ -1,0 +1,22 @@
+# Install with: python -m pip install -r requirements.txt
+# == pins each listed version for repeatable classroom setup. These pins retain
+# the existing environment's package list; they are not a hash-verified lockfile
+# or a guarantee of compatibility with every Python version/platform.
+# The calculator uses Python itself; these packages support its test tooling.
+
+# Backport for exception groups on older Python versions.
+exceptiongroup==1.3.1
+# INI parsing used by pytest for configuration.
+iniconfig==2.1.0
+# Version/requirement parsing used by Python tooling.
+packaging==26.3
+# pytest's plugin and hook infrastructure.
+pluggy==1.6.0
+# Syntax highlighting for readable diagnostic output.
+Pygments==2.21.0
+# Direct development dependency: discovers and runs the tests.
+pytest==8.4.2
+# TOML parsing backport used by tooling on older Python versions.
+tomli==2.4.1
+# Compatibility support for typing features.
+typing_extensions==4.16.0
